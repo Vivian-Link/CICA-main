@@ -9,12 +9,20 @@ CICA integrates cross-modal consensus with modality-private sentiment evidence. 
 Use Python 3.10–3.12 and a PyTorch build suitable for your hardware.
 
 ```bash
-git clone https://github.com/Vivian-Link/CICA-main.git
 cd CICA-main
 python -m pip install -e ".[bert]"
 ```
 
 The BERT input mode uses Hugging Face Transformers. Precomputed feature inputs use PyTorch and NumPy. For offline training, specify a local BERT checkpoint in the experiment configuration.
+
+## Datasets
+
+| Dataset | Official dataset page | SDK resources |
+|---|---|---|
+| CMU-MOSI | [CMU-MOSI](https://multicomp.cs.cmu.edu/resources/cmu-mosi-dataset/) | [MOSI dataset definitions](https://github.com/CMU-MultiComp-Lab/CMU-MultimodalSDK/tree/main/mmsdk/mmdatasdk/dataset/standard_datasets/CMU_MOSI) |
+| CMU-MOSEI | [CMU-MOSEI](https://multicomp.cs.cmu.edu/resources/cmu-mosei-dataset/) | [MOSEI dataset definitions](https://github.com/CMU-MultiComp-Lab/CMU-MultimodalSDK/tree/main/mmsdk/mmdatasdk/dataset/standard_datasets/CMU_MOSEI) |
+
+Features and labels can be obtained through the [CMU Multimodal SDK](https://github.com/CMU-MultiComp-Lab/CMU-MultimodalSDK). Follow the dataset providers' access and citation instructions.
 
 ## Data preparation
 
@@ -63,5 +71,3 @@ evaluate_predictions.py   paired evaluation and reliability diagnostics
 ```
 
 The [architecture documentation](docs/architecture.md) maps the formulation to the implementation. Experiment settings and result tables are maintained in their corresponding files.
-
-Maintainer: **Vivian-Link** · **lijiezong@163.com**
