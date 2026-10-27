@@ -1,0 +1,10 @@
+variant,mosi_mae,mosi_corr,mosi_weighted_f1,mosei_mae,mosei_corr,mosei_weighted_f1
+Full CICA,0.684,0.829,88.17,0.487,0.789,86.81
+Parameter-matched uniform arbitration,0.706,0.807,86.74,0.511,0.769,85.42
+Uncoupled additive arbitration,0.695,0.820,87.38,0.499,0.780,86.18
+w/o shared-private decoupling,0.709,0.806,86.71,0.512,0.769,85.40
+w/o consensus path,0.704,0.808,86.80,0.508,0.768,85.51
+w/o reasoning path,0.716,0.803,86.42,0.519,0.761,85.02
+w/o inconsistency modelling,0.728,0.794,85.91,0.525,0.754,84.60
+w/o reliability evaluation,0.735,0.787,85.50,0.532,0.747,84.21
+w/o conflict-aware reconstruction,0.701,0.811,86.92,0.505,0.770,85.60

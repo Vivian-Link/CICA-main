@@ -12,7 +12,7 @@ def main():
     t.add_argument('--data', required=True)
     t.add_argument('--output', required=True)
     t.add_argument('--variant', choices=['cica', 'uniform'], default='cica')
-    t.add_argument('--seeds', type=int, nargs='+', default=[11, 23, 37, 51, 71])
+    t.add_argument('--seeds', type=int, nargs='+', default=None)
     t.add_argument('--set', action='append', default=[], metavar='SECTION.KEY=JSON')
     p = commands.add_parser('predict')
     p.add_argument('--checkpoint', required=True)
@@ -37,7 +37,9 @@ def main():
             if section not in config or field not in config[section]:
                 parser.error('Unknown setting: ' + key)
             config[section][field] = json.loads(value)
-        train(config, args.data, args.output, args.seeds, args.variant, args.device)
+        seeds = args.seeds if args.seeds is not None else config['seeds']
+        config['seeds'] = seeds
+        train(config, args.data, args.output, seeds, args.variant, args.device)
     else:
         predict(args.checkpoint, args.data, args.output, args.split, args.device,
                 args.drop, args.missing_rate)

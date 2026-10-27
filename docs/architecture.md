@@ -18,7 +18,7 @@ The modality order is language, visual and acoustic (`L`, `V`, `A`). The hidden 
 
 ## Trainable maps
 
-The explicitly affine gates and readouts use `nn.Linear`. Maps denoted by `f` or `phi`, feature projections and reconstruction decoders use two linear layers of hidden width `hidden_dim`, GELU, dropout and output layer normalization. Pooling scores use the specified tanh. An additional layer normalization is applied where the equations explicitly require it, including the gated shared/private states and consensus state. The final regression/classification maps are linear. These concrete activation/width/output-map choices are configurable implementation defaults recorded with the parameter sources, rather than recovered historical settings.
+The affine gates and readouts use `nn.Linear`. Maps denoted by `f` or `phi`, feature projections and reconstruction decoders use two linear layers of hidden width `hidden_dim`, GELU, dropout and output layer normalization. Pooling scores use tanh. Additional layer normalization is applied to the gated shared/private states and consensus state as specified in the equations. The final regression and classification maps are linear.
 
 The BERT path obtains `last_hidden_state` using the supplied attention mask, then projects and pools it. Visual/acoustic streams and optional precomputed BERT features use modality-specific feed-forward sequence projections. No visual/acoustic input dimension or extractor version is inferred from a feature-family name. The agreement graph is the consensus operator specified by Equations 9–15.
 

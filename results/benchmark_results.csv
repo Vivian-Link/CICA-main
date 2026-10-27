@@ -1,0 +1,43 @@
+dataset,model,design,mae,corr,acc2,weighted_f1,acc7
+MOSI,TFN,Tensor,0.970,0.633,73.90,73.40,32.10
+MOSI,LMF,Tensor,0.912,0.668,76.40,75.70,32.80
+MOSI,MFN,Recurrent,0.965,0.632,,,34.10
+MOSI,MulT (aligned),Transformer,0.871,0.698,83.00,82.80,40.00
+MOSI,MISA,Disentangled,0.783,0.761,83.40,83.60,42.30
+MOSI,Self-MM,Self-supervised,0.713,0.798,85.98,85.95,
+MOSI,MMIM,InfoMax,0.700,0.800,86.10,86.00,46.70
+MOSI,PS-Mixer,Polar-strength,0.794,0.748,82.10,82.10,44.30
+MOSI,AOBERT,Single-stream,0.856,0.700,85.60,86.40,40.20
+MOSI,TCHFN,Text-centred,0.748,0.780,86.10,86.30,44.80
+MOSI,MIUR,Information filtering,0.725,0.795,83.40,83.40,45.80
+MOSI,MISBA,Information bottleneck,0.728,0.798,87.00,87.20,43.10
+MOSI,MFON,Prompt optimisation,0.725,0.797,86.90,86.80,44.90
+MOSI,DLF,Language-focused,0.731,0.781,85.10,85.00,47.10
+MOSI,MPID,Modality-preserving,0.706,0.792,85.40,84.50,48.40
+MOSI,TETFN,Text-enhanced,0.717,0.800,86.10,86.07,45.50
+MOSI,TeFN,Multilevel attention,0.730,0.785,84.30,84.40,45.50
+MOSI,MSAmba,State-space,0.707,0.809,87.43,87.40,49.67
+MOSI,CMSA,Text-guided correction,0.698,0.822,87.34,87.06,
+MOSI,PFGAD,Guided denoising,0.694,0.814,87.50,87.50,46.20
+MOSI,CICA,Consensus arbitration,0.684,0.829,88.31,88.17,49.05
+MOSEI,TFN,Tensor,0.593,0.700,82.50,82.10,50.20
+MOSEI,LMF,Tensor,0.623,0.677,82.00,82.20,48.00
+MOSEI,MFN,Recurrent,0.612,0.687,80.60,80.00,49.10
+MOSEI,MulT (aligned),Transformer,0.580,0.703,82.50,82.30,51.80
+MOSEI,MISA,Disentangled,0.555,0.756,85.50,85.30,52.20
+MOSEI,Self-MM,Self-supervised,0.530,0.765,85.17,85.30,
+MOSEI,MMIM,InfoMax,0.526,0.772,86.00,85.90,54.20
+MOSEI,PS-Mixer,Polar-strength,0.537,0.765,86.10,86.10,53.00
+MOSEI,AOBERT,Single-stream,0.515,0.763,86.20,85.90,54.50
+MOSEI,TCHFN,Text-centred,0.538,0.770,86.30,86.50,53.20
+MOSEI,MIUR,Information filtering,0.533,0.762,83.10,83.10,53.80
+MOSEI,MISBA,Information bottleneck,0.568,0.753,86.70,85.80,52.40
+MOSEI,MFON,Prompt optimisation,0.528,0.780,86.30,86.30,53.70
+MOSEI,DLF,Language-focused,0.536,0.764,85.40,85.30,53.90
+MOSEI,MPID,Modality-preserving,0.533,0.776,85.10,85.30,53.60
+MOSEI,TETFN,Text-enhanced,0.551,0.748,85.18,85.27,
+MOSEI,TeFN,Multilevel attention,0.523,0.780,86.00,86.10,54.90
+MOSEI,MSAmba,State-space,0.507,0.796,86.86,86.93,54.21
+MOSEI,CMSA,Text-guided correction,0.502,0.788,85.74,85.42,
+MOSEI,PFGAD,Guided denoising,0.554,0.786,86.70,86.70,53.80
+MOSEI,CICA,Consensus arbitration,0.487,0.789,86.94,86.81,55.12

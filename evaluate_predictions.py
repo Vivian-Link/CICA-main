@@ -99,7 +99,7 @@ def audit(args):
         raise ValueError('Missing required columns: '+str(required))
     statuses={r['data_status'] for r in rows}
     if len(statuses)!=1 or not statuses.issubset({SYNTHETIC,'MEASURED','AUTHOR_SUPPLIED'}):
-        raise ValueError('Use a single explicit data_status; never mix synthetic and author data.')
+        raise ValueError('Use a single data_status for all prediction records.')
     status=next(iter(statuses))
     tables={}; seen=set()
     for r in rows:
@@ -130,7 +130,7 @@ def audit(args):
         if not rv:raise ValueError('Missing reference validation export')
         rt=tables[(dataset,'test',ref,'CICA')]
         ids=sorted(rt); n=len(ids); labels=np.array([rt[i]['y'] for i in ids])
-        expected={'CMU-MOSI':686,'MOSI':686,'CMU-MOSEI':4659,'MOSEI':4659,'DEMO_MOSI_NOT_REAL':686}
+        expected={'CMU-MOSI':686,'MOSI':686,'CMU-MOSEI':4659,'MOSEI':4659}
         for spec in args.expected_test_count:
             d,nn=spec.rsplit('=',1);expected[d]=int(nn)
         if dataset not in expected:
@@ -140,7 +140,7 @@ def audit(args):
         if control_seeds!=set(seeds):raise ValueError('Control and CICA seed sets differ')
         val_seeds={r['seed'] for r in rows if r['dataset']==dataset and r['model']=='CICA' and r['split']=='validation'}
         if val_seeds!=set(seeds):raise ValueError('Validation and test CICA seed sets differ')
-        expected_val={'CMU-MOSI':229,'MOSI':229,'CMU-MOSEI':1871,'MOSEI':1871,'DEMO_MOSI_NOT_REAL':229}
+        expected_val={'CMU-MOSI':229,'MOSI':229,'CMU-MOSEI':1871,'MOSEI':1871}
         for spec in args.expected_validation_count:
             d,nn=spec.rsplit('=',1);expected_val[d]=int(nn)
         if dataset not in expected_val:raise ValueError('Declare --expected-validation-count dataset=N for '+dataset)

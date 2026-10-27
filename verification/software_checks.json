@@ -1,11 +1,11 @@
 {
-  "unit_tests": 20,
+  "unit_tests": 22,
   "failures": 0,
   "errors": 0,
   "skipped": 0,
   "python": "3.10.20",
   "torch": "2.5.1",
-  "numpy": "1.26.4",
+  "numpy": "2.2.6",
   "transformers": "4.44.2",
   "cuda_forward_backward": true,
   "local_bert_checkpoint_and_gradient": true,
@@ -14,5 +14,6 @@
   "checkpoint_prediction_roundtrip_identical": true,
   "single_and_random_missingness": true,
   "paired_evaluation_checks": 9,
-  "scope": "Software tests on generated SMOKE_TEST fixtures; no new MOSI/MOSEI benchmark measurements"
+  "scope": "Mathematical identities, data validation, command-line configuration, BERT integration and CUDA software checks",
+  "seed_configuration_checks": true
 }

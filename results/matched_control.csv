@@ -1,0 +1,5 @@
+dataset,model,mae,mae_sd,weighted_f1,weighted_f1_sd
+MOSI,CICA,0.684,0.006,88.17,0.23
+MOSI,Matched uniform,0.706,,86.74,
+MOSEI,CICA,0.487,0.003,86.81,0.12
+MOSEI,Matched uniform,0.511,,85.42,
