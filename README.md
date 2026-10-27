@@ -8,7 +8,7 @@ The package provides the neural model, the six-term training objective, a parame
 
 ## Installation
 
-Use Python 3.10 or later. Install the PyTorch build appropriate for your hardware, then install the package:
+Use Python 3.10–3.12. Install the PyTorch build appropriate for your hardware, then install the package:
 
 ```bash
 git clone https://github.com/Vivian-Link/CICA-main.git

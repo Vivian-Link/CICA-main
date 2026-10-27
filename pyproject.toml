@@ -6,12 +6,12 @@ build-backend = "setuptools.build_meta"
 name = "cica"
 version = "1.0.0"
 description = "Conflict-Informed Consensus Arbitration for multimodal sentiment analysis"
-requires-python = ">=3.10"
-dependencies = ["numpy>=1.24,<3", "torch>=2.2,<3"]
+requires-python = ">=3.10,<3.13"
+dependencies = ["numpy>=1.24,<2", "torch>=2.2,<3"]
 authors = [{name = "Vivian-Link", email = "lijiezong@163.com"}]
 
 [project.optional-dependencies]
-bert = ["transformers>=4.40,<5", "safetensors>=0.4"]
+bert = ["transformers>=4.40,<4.45", "safetensors>=0.4"]
 
 [project.scripts]
 cica = "cica.cli:main"
