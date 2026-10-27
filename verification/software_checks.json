@@ -1,0 +1,18 @@
+{
+  "unit_tests": 20,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "python": "3.10.20",
+  "torch": "2.5.1",
+  "numpy": "1.26.4",
+  "transformers": "4.44.2",
+  "cuda_forward_backward": true,
+  "local_bert_checkpoint_and_gradient": true,
+  "two_seed_training_both_variants": true,
+  "deterministic_repeat_identical": true,
+  "checkpoint_prediction_roundtrip_identical": true,
+  "single_and_random_missingness": true,
+  "paired_evaluation_checks": 9,
+  "scope": "Software tests on generated SMOKE_TEST fixtures; no new MOSI/MOSEI benchmark measurements"
+}

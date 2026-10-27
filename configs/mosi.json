@@ -1,0 +1,43 @@
+{
+  "dataset": "MOSI",
+  "model": {
+    "text_mode": "bert",
+    "bert_name": "google-bert/bert-base-uncased",
+    "bert_revision": "main",
+    "hidden_dim": 128,
+    "dropout": 0.3,
+    "temperature": 0.5,
+    "tau": 0.5,
+    "rec_temperature": 1.0,
+    "eta": 1.0,
+    "kappa": 1.0,
+    "class_temperature": 1.0,
+    "omega_min": 0.05,
+    "epsilon": 1e-08
+  },
+  "loss": {
+    "lambda_ce": 0.1,
+    "lambda_cal": 0.1,
+    "lambda_rec": 0.2,
+    "lambda_con": 0.05,
+    "lambda_div": 0.01,
+    "lambda_rel": 0.1
+  },
+  "training": {
+    "batch_size": 32,
+    "epochs": 100,
+    "patience": 10,
+    "min_delta": 0.0001,
+    "gradient_clip": 1.0,
+    "learning_rate": 0.0001,
+    "encoder_learning_rate": 2e-05,
+    "adam_betas": [
+      0.9,
+      0.999
+    ],
+    "adam_epsilon": 1e-08,
+    "weight_decay": 0.01,
+    "lr_factor": 0.5,
+    "lr_patience": 3
+  }
+}

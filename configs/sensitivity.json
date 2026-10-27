@@ -1,0 +1,13 @@
+{
+  "selection": "validation_mae",
+  "seeds": [11, 23, 37, 51, 71],
+  "one_factor_at_a_time": {
+    "loss.lambda_rec": [0.05, 0.1, 0.2, 0.4, 0.8],
+    "loss.lambda_con": [0.005, 0.01, 0.05, 0.1, 0.2],
+    "model.tau": [0.1, 0.3, 0.5, 0.7, 1.0],
+    "model.hidden_dim": [64, 96, 128, 192, 256]
+  },
+  "additional_training_conditions": {
+    "model.eta": [0.0, 0.5, 1.0, 2.0]
+  }
+}
