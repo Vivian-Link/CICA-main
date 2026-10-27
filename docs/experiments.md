@@ -28,7 +28,7 @@ python -m cica predict --checkpoint runs/mosi/cica/seed_11/best.pt --data data/m
 python -m cica predict --checkpoint runs/mosi/cica/seed_11/best.pt --data data/mosi --output runs/mosi/random_50.csv --missing-rate 0.5
 ```
 
-Prediction uses the selected checkpoint without retraining. Cross-modal quantities are recomputed over observed streams, inactive concatenation slots are zero and inference weights are renormalized. A single observed modality has zero relational conflict and unit inference weight. Random masks retain at least one stream, and the sampling seed is recorded.
+Prediction uses the selected checkpoint without retraining. Cross-modal quantities are recomputed over observed streams, inactive concatenation slots are zero and inference weights are renormalized. A single observed modality has zero relational conflict and unit inference weight. Random masks retain at least one stream. Each mask is keyed by the sampling seed and utterance identifier, independently of batch size, input order and model variant. The sampling seed, missing rate and mask policy are recorded.
 
 ## Paired evaluation
 

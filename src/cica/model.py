@@ -40,10 +40,17 @@ def uncertainty_and_divergence(private_logp: Tensor, consensus_logp: Tensor):
     """Exact normalised entropy and JS; no additive epsilon inside log probabilities."""
     p = private_logp.exp()
     qlog = consensus_logp[:, None, :].expand_as(private_logp)
-    mixlog = torch.logaddexp(private_logp, qlog) - math.log(2)
-    entropy = -(p * private_logp).sum(-1) / math.log(p.shape[-1])
-    divergence = ((p * (private_logp - mixlog)).sum(-1)
-                  + (qlog.exp() * (qlog - mixlog)).sum(-1)) / (2 * math.log(2))
+    q = qlog.exp()
+    # Implement 0 log 0 = 0, including categories absent from both distributions.
+    # Mask before arithmetic: multiplying an infinite log by zero produces NaN.
+    present = (p > 0) | (q > 0)
+    mixlog = torch.logaddexp(torch.where(present, private_logp, 0.),
+                            torch.where(present, qlog, 0.)) - math.log(2)
+    plog = torch.where(p > 0, private_logp, 0.)
+    qlog = torch.where(q > 0, qlog, 0.)
+    entropy = -(p * plog).sum(-1) / math.log(p.shape[-1])
+    divergence = ((p * (plog - mixlog)).sum(-1)
+                  + (q * (qlog - mixlog)).sum(-1)) / (2 * math.log(2))
     return entropy, divergence
 
 
@@ -58,13 +65,16 @@ class AttentionPool(nn.Module):
         if sequence.ndim != 3 or mask.shape != sequence.shape[:2]:
             raise ValueError("Expected [batch,time,features] and [batch,time] mask")
         mask = mask.bool()
+        if sequence.shape[1] == 0:
+            return sequence.new_zeros((len(sequence), sequence.shape[-1]))
+        sequence = torch.where(mask[..., None], sequence, 0.)
         valid = mask.any(-1)
         safe = mask.clone()
         safe[~valid, 0] = True
         score = self.score(torch.tanh(self.map(sequence))).squeeze(-1)
         attention = masked_softmax(score, safe)
         state = self.norm((attention[..., None] * sequence).sum(1))
-        return state * valid[:, None]
+        return torch.where(valid[:, None], state, 0.)
 
 
 class CICA(nn.Module):
@@ -115,13 +125,25 @@ class CICA(nn.Module):
         self.classifier = nn.Linear(d, 3)
         self.decoders = nn.ModuleList([feedforward(d, d, d, p) for _ in range(3)])
 
-    def encode(self, streams: list[Tensor], masks: list[Tensor]) -> Tensor:
+    def encode(self, streams: list[Tensor], masks: list[Tensor],
+               observed: Tensor | None = None) -> Tensor:
         states = []
         for m, (x, mask) in enumerate(zip(streams, masks)):
+            active = mask.bool().any(-1) if observed is None else observed[:, m]
+            indices = active.nonzero(as_tuple=True)[0]
+            state = self.projections[m][0].weight.new_zeros((len(x), self.config.hidden_dim))
+            if not len(indices):
+                states.append(state)
+                continue
+            x, mask = x.index_select(0, indices), mask.index_select(0, indices).bool()
             if m == 0 and self.text_backbone is not None:
+                pad = self.text_backbone.config.pad_token_id
+                x = torch.where(mask, x, 0 if pad is None else pad)
                 x = self.text_backbone(input_ids=x.long(), attention_mask=mask.long()).last_hidden_state
+            else:
+                x = torch.where(mask[..., None], x, 0.)
             u = self.projections[m](x)
-            states.append(self.pooling[m](u, mask))
+            states.append(state.index_copy(0, indices, self.pooling[m](u, mask)))
         return torch.stack(states, dim=1)
 
     def decouple(self, encoded: Tensor):
@@ -140,7 +162,8 @@ class CICA(nn.Module):
         if observed.shape != (b, 3) or not bool(observed.any(-1).all()):
             raise ValueError("observed must be [batch,3] with a nonempty set per sample")
         active = observed[..., None]
-        s, p = shared * active, private * active
+        s = torch.where(active, shared, 0.)
+        p = torch.where(active, private, 0.)
         count = observed.sum(-1, keepdim=True).to(s.dtype)
         other_count = (count - 1).clamp_min(1)
         pair = observed[:, :, None] & observed[:, None, :]
@@ -201,7 +224,7 @@ class CICA(nn.Module):
             raise ValueError("An observed stream must contain at least one valid time step")
         if not bool(observed.any(-1).all()):
             raise ValueError("An all-missing input is undefined")
-        encoded = self.encode(streams, masks)
+        encoded = self.encode(streams, masks, observed)
         shared, private = self.decouple(encoded)
         out = self.reason(shared, private, observed)
         out.update(encoded=encoded, shared=shared, private=private,

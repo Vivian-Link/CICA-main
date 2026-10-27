@@ -59,6 +59,43 @@ class ModelTests(unittest.TestCase):
             for field in ['fused', 'intuition', 'alpha', 'reliability', 'conflict', 'gate']:
                 torch.testing.assert_close(a[field], b[field])
 
+    def test_padding_nan_is_excluded_before_projection(self):
+        self.masks[0][:, -2:] = False
+        expected = self.model(self.streams, self.masks)['yhat']
+        self.streams[0][:, -2:] = float('nan')
+        self.streams[0].requires_grad_()
+        actual = self.model(self.streams, self.masks)['yhat']
+        torch.testing.assert_close(actual, expected)
+        actual.sum().backward()
+        self.assertTrue(bool(torch.isfinite(self.streams[0].grad).all()))
+        torch.testing.assert_close(self.streams[0].grad[:, -2:], torch.zeros(2, 2, 5))
+
+    def test_unobserved_stream_is_never_encoded(self):
+        observed = torch.tensor([[1, 0, 1], [1, 0, 1]], dtype=torch.bool)
+        expected = self.model(self.streams, self.masks, observed)['yhat']
+        self.streams[1][:] = float('nan')
+        def forbidden(*args):
+            raise AssertionError('An unobserved modality entered its projection')
+        handle = self.model.projections[1].register_forward_pre_hook(forbidden)
+        try:
+            actual = self.model(self.streams, self.masks, observed)
+            torch.testing.assert_close(actual['yhat'], expected)
+            torch.testing.assert_close(actual['encoded'][:, 1], torch.zeros(2, 12))
+            self.streams[1] = self.streams[1][:, :0]
+            self.masks[1] = self.masks[1][:, :0]
+            torch.testing.assert_close(self.model(self.streams, self.masks, observed)['yhat'], expected)
+        finally:
+            handle.remove()
+
+    def test_mixed_missing_inputs_are_excluded_per_sample(self):
+        observed = torch.tensor([[1, 1, 0], [0, 0, 1]], dtype=torch.bool)
+        expected = self.model(self.streams, self.masks, observed)
+        for m, x in enumerate(self.streams):
+            x[~observed[:, m]] = float('nan')
+        actual = self.model(self.streams, self.masks, observed)
+        for key in ['yhat', 'alpha', 'reliability', 'conflict', 'gate']:
+            torch.testing.assert_close(actual[key], expected[key])
+
     def test_single_modality_and_zero_inactive_slots(self):
         for target in range(3):
             observed = torch.zeros(2, 3, dtype=torch.bool)
@@ -152,6 +189,32 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(score['acc2'], 100.)
         self.assertEqual(score['acc7'], 60.)
         self.assertIsNone(metrics([0.], [1.])['f1'])
+
+    def test_zero_probability_entropy_js_and_gradients(self):
+        for consensus in [[0., -torch.inf, -torch.inf], [-torch.inf, 0., -torch.inf]]:
+            lp = torch.tensor([[[0., -torch.inf, -torch.inf]]], dtype=torch.float64, requires_grad=True)
+            lq = torch.tensor([consensus], dtype=torch.float64, requires_grad=True)
+            entropy, js = uncertainty_and_divergence(lp, lq)
+            torch.testing.assert_close(entropy, torch.zeros_like(entropy))
+            expected = 0. if consensus[0] == 0. else 1.
+            torch.testing.assert_close(js, torch.full_like(js, expected))
+            gradients = torch.autograd.grad((entropy + js).sum(), (lp, lq))
+            self.assertTrue(all(bool(torch.isfinite(g).all()) for g in gradients))
+
+    def test_entropy_js_matches_probability_definition(self):
+        lp = torch.log_softmax(torch.randn(4, 3, 3, dtype=torch.float64), -1).requires_grad_()
+        lq = torch.log_softmax(torch.randn(4, 3, dtype=torch.float64), -1).requires_grad_()
+        entropy, js = uncertainty_and_divergence(lp, lq)
+        p, q = lp.exp(), lq.exp()[:, None, :]
+        mixture = (p + q) / 2
+        reference_entropy = -(p * p.log()).sum(-1) / math.log(3)
+        reference_js = (p * (p / mixture).log() + q * (q / mixture).log()).sum(-1) / (2 * math.log(2))
+        torch.testing.assert_close(entropy, reference_entropy)
+        torch.testing.assert_close(js, reference_js)
+        actual_grad = torch.autograd.grad((entropy + js).sum(), (lp, lq), retain_graph=True)
+        expected_grad = torch.autograd.grad((reference_entropy + reference_js).sum(), (lp, lq))
+        for a, b in zip(actual_grad, expected_grad):
+            torch.testing.assert_close(a, b)
 
 
 if __name__ == '__main__':

@@ -30,6 +30,12 @@ class BackboneTests(unittest.TestCase):
             changed = [x.clone() for x in streams]
             changed[0][:, -1] = 0
             torch.testing.assert_close(a, model(changed, masks)['yhat'])
+            changed[0][:, -1] = 10000  # Invalid vocabulary IDs in padding are ignored.
+            torch.testing.assert_close(a, model(changed, masks)['yhat'])
+            observed = torch.tensor([[1, 1, 0], [0, 1, 1]], dtype=torch.bool)
+            expected = model(streams, masks, observed)['yhat']
+            changed[0][1] = 10000
+            torch.testing.assert_close(expected, model(changed, masks, observed)['yhat'])
             loss = objective(model(streams, masks, reconstruct=True), torch.tensor([-1., 1.]), config, LossConfig())['total']
             loss.backward()
             gradient = model.text_backbone.embeddings.word_embeddings.weight.grad

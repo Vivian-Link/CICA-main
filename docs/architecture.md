@@ -22,6 +22,8 @@ The affine gates and readouts use `nn.Linear`. Maps denoted by `f` or `phi`, fea
 
 The BERT path obtains `last_hidden_state` using the supplied attention mask, then projects and pools it. Visual/acoustic streams and optional precomputed BERT features use modality-specific feed-forward sequence projections. No visual/acoustic input dimension or extractor version is inferred from a feature-family name. The agreement graph is the consensus operator specified by Equations 9–15.
 
+Only observed sample–modality pairs enter their encoders. Padding is replaced before projection or token lookup and excluded from pooling. An unavailable stream may contain no time steps; its encoded state and fusion slots remain zero. Entropy and Jensen–Shannon terms implement the zero-probability convention before arithmetic, including classes absent from both distributions, without adding probability mass.
+
 ## Reductions and gradients
 
 Each equation is evaluated per utterance, then averaged over the batch. L1 reconstruction is a **sum over feature coordinates**, weighted and summed over the three targets. Shared consistency sums squared feature distances over the three unordered pairs. Diversity sums squared scalar cosines over modalities. Reliability supervision sums squared score errors over modalities. Private-head calibration averages over modalities. Changing these sums to coordinate averages changes the objective scale.

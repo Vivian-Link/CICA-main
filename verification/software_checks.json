@@ -1,5 +1,5 @@
 {
-  "unit_tests": 22,
+  "unit_tests": 29,
   "failures": 0,
   "errors": 0,
   "skipped": 0,
@@ -14,6 +14,13 @@
   "checkpoint_prediction_roundtrip_identical": true,
   "single_and_random_missingness": true,
   "paired_evaluation_checks": 9,
-  "scope": "Mathematical identities, data validation, command-line configuration, BERT integration and CUDA software checks",
-  "seed_configuration_checks": true
+  "scope": "Mathematical identities, masking, data validation, command-line configuration, BERT integration and CUDA software checks",
+  "seed_configuration_checks": true,
+  "zero_probability_entropy_and_js_gradients": true,
+  "inactive_streams_not_encoded": true,
+  "padding_excluded_before_projection_and_token_lookup": true,
+  "random_masks_invariant_to_batch_size_and_input_order": true,
+  "complete_input_regression_unchanged": true,
+  "integration_data_status": "SMOKE_TEST",
+  "benchmark_training_performed": false
 }

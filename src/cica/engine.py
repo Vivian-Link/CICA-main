@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import os
 import platform
@@ -46,26 +47,36 @@ def loader(dataset, batch_size, *, seed, shuffle=False):
                       collate_fn=collate, generator=torch.Generator().manual_seed(seed))
 
 
-def evaluate(model, batches, device, *, metadata, seed, split, drop=(), missing_rate=0.0):
+def observation_masks(ids, seed, *, drop=(), missing_rate=0.0):
+    """Sample each utterance independently of batching, order and model variant."""
     if not 0 <= missing_rate <= 1:
         raise ValueError('missing_rate must be in [0,1]')
     drop_ids = [MODALITIES.index(m) for m in drop]
     if len(set(drop_ids)) == 3:
         raise ValueError('Cannot drop all three modalities')
-    rng = np.random.default_rng(seed)
+    observed = np.ones((len(ids), 3), dtype=bool)
+    observed[:, drop_ids] = False
+    allowed = [m for m in range(3) if m not in drop_ids]
+    if missing_rate:
+        for i, uid in enumerate(ids):
+            identity = json.dumps([int(seed), str(uid)], ensure_ascii=False, separators=(',', ':'))
+            key = int.from_bytes(hashlib.sha256(identity.encode('utf-8')).digest(), 'little')
+            rng = np.random.default_rng(key)
+            observed[i] &= rng.random(3) >= missing_rate
+            if not observed[i].any():
+                observed[i, rng.choice(allowed)] = True
+    return observed
+
+
+def evaluate(model, batches, device, *, metadata, seed, split, drop=(), missing_rate=0.0):
+    # Validate settings even if an empty iterator is supplied.
+    observation_masks([], seed, drop=drop, missing_rate=missing_rate)
     model.eval()
     records = []
     with torch.no_grad():
         for batch in batches:
             streams, masks, y = to_device(batch, device)
-            observed = np.ones((len(y), 3), dtype=bool)
-            observed[:, drop_ids] = False
-            if missing_rate:
-                observed &= rng.random(observed.shape) >= missing_rate
-                # Retain one uniformly sampled allowed stream for an empty random draw.
-                allowed = [m for m in range(3) if m not in drop_ids]
-                for row in np.flatnonzero(~observed.any(-1)):
-                    observed[row, rng.choice(allowed)] = True
+            observed = observation_masks(batch['ids'], seed, drop=drop, missing_rate=missing_rate)
             out = model(streams, masks, torch.from_numpy(observed).to(device))
             values = {k: out[k].detach().cpu().numpy() for k in
                       ['yhat', 'private_y', 'reliability', 'conflict', 'conflict_raw', 'alpha']}
@@ -73,7 +84,8 @@ def evaluate(model, batches, device, *, metadata, seed, split, drop=(), missing_
             for i, uid in enumerate(batch['ids']):
                 row = dict(data_status=metadata['data_status'], dataset=metadata['dataset'],
                            split=split, seed=str(seed), model=model.config.variant.upper(),
-                           utterance_id=uid, y=float(y[i].cpu()), yhat=float(values['yhat'][i]))
+                           utterance_id=uid, y=float(y[i].cpu()), yhat=float(values['yhat'][i]),
+                           missing_rate=missing_rate, mask_policy='sha256-seed-utterance-v1')
                 for j, m in enumerate(MODALITIES):
                     row['observed_' + m] = int(observed[i, j])
                     for name, key in [('private', 'private_y'), ('r', 'reliability'),
