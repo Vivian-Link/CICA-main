@@ -125,6 +125,22 @@ class CICA(nn.Module):
         self.classifier = nn.Linear(d, 3)
         self.decoders = nn.ModuleList([feedforward(d, d, d, p) for _ in range(3)])
 
+    def parameter_inventory(self):
+        """Count unique registered tensors, including training-only auxiliary heads."""
+        groups = {}
+        for name, parameter in self.named_parameters():
+            group = groups.setdefault(name.split('.', 1)[0], dict(total=0, trainable=0))
+            group['total'] += parameter.numel()
+            if parameter.requires_grad:
+                group['trainable'] += parameter.numel()
+        total = sum(g['total'] for g in groups.values())
+        backbone = groups.get('text_backbone', {}).get('total', 0)
+        return dict(total_parameters=total,
+                    trainable_parameters=sum(g['trainable'] for g in groups.values()),
+                    backbone_parameters=backbone, new_module_parameters=total - backbone,
+                    projection_input_dims=[p[0].in_features for p in self.projections],
+                    modules=groups)
+
     def encode(self, streams: list[Tensor], masks: list[Tensor],
                observed: Tensor | None = None) -> Tensor:
         states = []

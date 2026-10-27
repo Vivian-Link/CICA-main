@@ -34,6 +34,20 @@ Cross-entropy is evaluated from logits with stable log-softmax semantics. Privat
 
 Each reconstruction decoder receives a fresh cross-modal pass with its target excluded. Encoded and intrinsic shared/private states can be cached because they contain no cross-modal operations; the private center, messages, consensus, relational descriptors, conflicts, class divergence, reliability, gate and scalar weights are recomputed. Excluded slots are zero after biased maps. Gradient tests verify zero dependence of each decoder input on the excluded state.
 
+## Parameter accounting
+
+Counts include every unique registered parameter, including private/consensus heads, reconstruction decoders and the BERT pooler registered by `AutoModel`. Pre-extracted visual/acoustic feature extractors are outside the model. With hidden width 128, three auxiliary classes and a 768-dimensional language projection input, the new modules contain `866453 + 128 * (D_V + D_A)` parameters. Standard BERT-base adds 109482240 parameters. `D_V` and `D_A` are read from the input data; they are not inferred from toolkit names. Both scalar-allocation variants retain the same registered architecture.
+
+Training writes exact total, trainable, backbone and per-module counts to `model_spec.json`. Existing checkpoints can be inspected without allocating their tensors on a GPU:
+
+```bash
+python tools/count_parameters.py --checkpoint runs/mosi/cica/seed_11/best.pt --output runs/mosi/cica/seed_11/parameter_count.json
+```
+
+The checkpoint tool validates the saved state keys and tensor shapes against the reconstructed architecture before exporting its counts. The dimension-dependent accounting definition is also stored in `verification/parameter_count_definition.json`.
+
+Figure 2's reconstruction-priority panel is a qualitative schematic without a numerical vertical scale. Numerical training weights are computed by `reconstruction_weights`, including the positive floor, and sum to one.
+
 ## Reproducible execution
 
 Training uses deterministic PyTorch algorithms, fixed explicit seeds, separate optimizer rates for BERT and new modules, gradient clipping and validation-MAE scheduling. The checkpoint with the lowest observed validation MAE is saved. `min_delta` controls early-stopping patience, not which checkpoint is retained. The evaluation set does not enter early stopping or normalization.

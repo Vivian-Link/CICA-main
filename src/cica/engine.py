@@ -146,8 +146,7 @@ def train(config, data, output, seeds, variant, device):
         run.mkdir()
         model = CICA(ModelConfig(**model_spec)).to(device)
         write_json(run / 'model_spec.json', dict(configuration=asdict(model.config),
-            total_parameters=sum(p.numel() for p in model.parameters()),
-            trainable_parameters=sum(p.numel() for p in model.parameters() if p.requires_grad)))
+            **model.parameter_inventory()))
         backbone, new = [], []
         for name, parameter in model.named_parameters():
             (backbone if name.startswith('text_backbone.') else new).append(parameter)

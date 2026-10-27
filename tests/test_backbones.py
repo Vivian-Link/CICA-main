@@ -10,6 +10,18 @@ from cica.engine import seed_everything
 
 class BackboneTests(unittest.TestCase):
     @unittest.skipUnless(importlib.util.find_spec('transformers'), 'Optional BERT dependencies are not installed')
+    def test_standard_bert_parameter_count_on_meta_device(self):
+        from transformers import BertConfig
+        config = ModelConfig((1, 35, 74), text_mode='bert', hidden_dim=128,
+                             bert_config=BertConfig().to_dict())
+        with torch.device('meta'):
+            model = CICA(config, load_pretrained=False)
+        report = model.parameter_inventory()
+        self.assertEqual(report['backbone_parameters'], 109482240)
+        self.assertEqual(report['total_parameters'], 110348693 + 128 * (35 + 74))
+        self.assertEqual(report['projection_input_dims'], [768, 35, 74])
+
+    @unittest.skipUnless(importlib.util.find_spec('transformers'), 'Optional BERT dependencies are not installed')
     def test_local_bert_checkpoint_roundtrip(self):
         from transformers import BertConfig, BertModel
         with tempfile.TemporaryDirectory() as directory:

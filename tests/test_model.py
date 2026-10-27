@@ -170,6 +170,17 @@ class ModelTests(unittest.TestCase):
         torch.testing.assert_close(derivative, .85 * r[0, 0] * mass * (1 - mass))
         self.assertGreaterEqual(float(derivative), 0)
 
+    def test_reconstruction_mass_and_floor_at_extreme_scores(self):
+        r = torch.tensor([[0., 0., 0.], [1., 1., 1.], [0., .5, 1.]], dtype=torch.float64)
+        c = torch.tensor([[1., 0., .5], [0., .5, 1.], [1., .5, 0.]], dtype=torch.float64)
+        for temperature in [1e-12, .5, 1., 100.]:
+            for eta in [0., 1., 10.]:
+                omega = reconstruction_weights(r, c, temperature, eta, .05)
+                self.assertTrue(bool(torch.isfinite(omega).all()))
+                self.assertTrue(bool((omega >= .05).all()))
+                torch.testing.assert_close(omega.sum(-1), torch.ones(3, dtype=torch.float64))
+                torch.testing.assert_close(omega[0], torch.full((3,), 1 / 3, dtype=torch.float64))
+
     def test_stable_entropy_js(self):
         logp = torch.log_softmax(torch.tensor([[[1000., -1000., 0.]]]), -1)
         logq = torch.log_softmax(torch.tensor([[-1000., 1000., 0.]]), -1)
@@ -189,6 +200,18 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(score['acc2'], 100.)
         self.assertEqual(score['acc7'], 60.)
         self.assertIsNone(metrics([0.], [1.])['f1'])
+
+    def test_parameter_inventory_and_dimension_formula(self):
+        for visual, acoustic in [(1, 1), (7, 11), (35, 74)]:
+            model = CICA(ModelConfig((768, visual, acoustic), hidden_dim=128))
+            report = model.parameter_inventory()
+            self.assertEqual(report['new_module_parameters'], 866453 + 128 * (visual + acoustic))
+            self.assertEqual(report['total_parameters'], sum(p.numel() for p in model.parameters()))
+            self.assertEqual(report['trainable_parameters'], report['total_parameters'])
+            self.assertEqual(report['projection_input_dims'], [768, visual, acoustic])
+            model.projections.requires_grad_(False)
+            frozen = sum(p.numel() for p in model.projections.parameters())
+            self.assertEqual(model.parameter_inventory()['trainable_parameters'], report['total_parameters'] - frozen)
 
     def test_zero_probability_entropy_js_and_gradients(self):
         for consensus in [[0., -torch.inf, -torch.inf], [-torch.inf, 0., -torch.inf]]:

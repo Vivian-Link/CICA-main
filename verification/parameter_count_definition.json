@@ -1,0 +1,12 @@
+{
+  "scope": "Unique registered parameters, including auxiliary heads and reconstruction decoders; pre-extracted visual/acoustic feature extractors are outside the count",
+  "hidden_dim": 128,
+  "auxiliary_classes": 3,
+  "language_projection_input_dim": 768,
+  "new_modules": "866453 + 128 * (visual_input_dim + acoustic_input_dim)",
+  "standard_bert_base_backbone": 109482240,
+  "total_with_standard_bert_base": "110348693 + 128 * (visual_input_dim + acoustic_input_dim)",
+  "dimension_source": "Actual packed input arrays and checkpoint architecture",
+  "runtime_report": "model_spec.json",
+  "checkpoint_report_command": "python tools/count_parameters.py --checkpoint PATH --output PATH"
+}

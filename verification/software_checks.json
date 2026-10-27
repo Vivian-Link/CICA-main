@@ -1,5 +1,5 @@
 {
-  "unit_tests": 29,
+  "unit_tests": 32,
   "failures": 0,
   "errors": 0,
   "skipped": 0,
@@ -22,5 +22,9 @@
   "random_masks_invariant_to_batch_size_and_input_order": true,
   "complete_input_regression_unchanged": true,
   "integration_data_status": "SMOKE_TEST",
-  "benchmark_training_performed": false
+  "benchmark_training_performed": false,
+  "dimension_dependent_parameter_count_verified": true,
+  "standard_bert_base_count_verified_on_meta_device": true,
+  "checkpoint_parameter_count_cli_verified": true,
+  "reconstruction_mass_and_floor_verified_at_extreme_scores": true
 }
